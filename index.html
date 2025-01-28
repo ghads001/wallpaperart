@@ -1,0 +1,378 @@
+    <title>無限壁紙アートジェネレーター</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #3498db;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        select, input, button {
+            padding: 12px;
+            font-size: 16px;
+            background-color: #2c2c2c;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        select:hover, input:hover, button:hover {
+            background-color: #3c3c3c;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        .art-piece {
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .art-piece:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        .art-piece img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+        .art-piece img:hover {
+            opacity: 0.9;
+        }
+        .art-info {
+            padding: 20px;
+        }
+        .art-info h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.2em;
+            color: #3498db;
+        }
+        .art-info p {
+            margin: 0 0 10px 0;
+            font-size: 0.9em;
+            color: #bbb;
+        }
+        .similar-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #2ecc71;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .similar-btn:hover {
+            background-color: #27ae60;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+        }
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .close:hover {
+            color: #3498db;
+        }
+        #loadingIndicator {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #3498db;
+            display: none;
+        }
+        .prompt-sign {
+            color: #3498db;
+            font-size: 1em;
+            margin-bottom: 8px;
+        }
+        .download-instructions {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .watermark {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+        }
+        .top-right-menu {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #2c3e50;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1001;
+        }
+        .top-right-menu a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+        .top-right-menu a:hover {
+            color: #3498db;
+        }
+        .creator-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(44, 62, 80, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 1002;
+        }
+    </style>
+</head>
+<body>
+    <div class="creator-info">製作者：杉原クニ</div>
+
+    <div class="container">
+        <h1>無限壁紙アートジェネレーター</h1>
+        <div class="download-instructions">
+            画像をダウンロードするには：画像をクリックし、右クリックして「新しいタブで画像を開く」を選択し、そこから保存してください。
+        </div>
+        <div class="controls">
+            <select id="styleSelect">
+                <option value="フォトリアリズム">フォトリアリズム</option>
+                <!-- 他のオプションはJavaScriptで動的に追加されます -->
+            </select>
+            <div>
+                <div class="prompt-sign">プロンプトを入力してください：</div>
+                <input type="text" id="promptInput" placeholder="プロンプトを入力..." value="不気味な1920年代の画像">
+            </div>
+            <select id="ratioSelect">
+                <option value="1:1">1:1（正方形）</option>
+                <option value="16:9">16:9（ワイドスクリーン）</option>
+                <option value="3:2">3:2</option>
+                <option value="2:3">2:3</option>
+                <option value="9:16">9:16（ポートレート）</option>
+            </select>
+            <input type="number" id="imageCountInput" min="1" max="10" value="6" placeholder="画像の数">
+            <button id="generateBtn">アートを生成</button>
+        </div>
+        <div class="gallery" id="artGallery">
+            <!-- アート作品がここに動的に追加されます -->
+        </div>
+        <div id="loadingIndicator">さらに画像を生成中...</div>
+    </div>
+
+    <div id="imageModal" class="modal">
+        <span class="close">×</span>
+        <img class="modal-content" id="modalImage">
+        <div class="watermark">by jojo</div>
+    </div>
+
+    <script>
+        const styles = [
+            "フォトリアリズム", "ハイパーリアリズム", "デジタルアート", "抽象表現主義", "アールデコ", 
+            "アールヌーボー", "バロック", "バウハウス", "キュビズム", "表現主義", "フォービズム", 
+            "印象派", "ミニマリズム", "ポップアート", "ルネサンス", "ロマン主義", 
+            "シュルレアリスム", "浮世絵", "ストリートアート"
+        ];
+
+        const styleSelect = document.getElementById('styleSelect');
+        const promptInput = document.getElementById('promptInput');
+        const ratioSelect = document.getElementById('ratioSelect');
+        const imageCountInput = document.getElementById('imageCountInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const artGallery = document.getElementById('artGallery');
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById("modalImage");
+        const closeBtn = document.getElementsByClassName("close")[0];
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        let isLoading = false;
+
+        // スタイル選択オプションを追加
+        styles.forEach(style => {
+            if (style !== "フォトリアリズム") {
+                const option = document.createElement('option');
+                option.value = style;
+                option.textContent = style;
+                styleSelect.appendChild(option);
+            }
+        });
+
+        function enhancePrompt(prompt, style) {
+            const enhancers = [
+                "高度に詳細", "複雑", "フォトリアリスティック", "4K解像度",
+                "鮮やかな色彩", "ドラマチックな照明", "プロフェッショナルな写真",
+                "シネマティック", "受賞作品", "傑作", "超リアル",
+                "生命感あふれる", "ハイパー詳細", "スタジオクオリティ", "完璧な構図"
+            ];
+            const randomEnhancers = enhancers.sort(() => 0.5 - Math.random()).slice(0, 4);
+            return `${prompt}、${style}スタイル、${randomEnhancers.join("、")}、Artstationでトレンド、8K解像度`;
+        }
+
+        function generateNegativePrompt() {
+            const negativePrompts = [
+                "ぼやけている、ピンボケ", "低品質", "ピクセル化", "ウォーターマーク", "署名",
+                "下手に描かれた", "歪んだ比率", "アマチュア", "非プロフェッショナル",
+                "露出過度", "露出不足", "粒状", "ノイズ", "JPEGアーティファクト",
+                "悪い構図", "切り取られた", "フレーム", "テキスト", "ロゴ"
+            ];
+            const randomNegatives = negativePrompts.sort(() => 0.5 - Math.random()).slice(0, 5);
+            return randomNegatives.join("、");
+        }
+
+        function generateArt(append = false, similarToImage = null) {
+            if (isLoading) return;
+            isLoading = true;
+            loadingIndicator.style.display = 'block';
+
+            const style = styleSelect.value;
+            const basePrompt = promptInput.value || "魅力的なフォトリアリスティックなシーン";
+            const enhancedPrompt = enhancePrompt(basePrompt, style);
+            const negativePrompt = generateNegativePrompt();
+            const ratio = ratioSelect.value;
+            const imageCount = parseInt(imageCountInput.value);
+
+            if (!append) {
+                artGallery.innerHTML = '';
+            }
+
+            for (let i = 0; i < imageCount; i++) {
+                const artPiece = document.createElement('div');
+                artPiece.className = 'art-piece';
+
+                let width, height;
+                switch(ratio) {
+                    case "1:1": width = height = 800; break;
+                    case "16:9": width = 800; height = 450; break;
+                    case "3:2": width = 800; height = 533; break;
+                    case "2:3": width = 533; height = 800; break;
+                    case "9:16": width = 450; height = 800; break;
+                    default: width = height = 800;
+                }
+
+                const imageUrl = similarToImage || `https://picsum.photos/${width}/${height}?random=${Date.now() + i}`;
+
+                artPiece.innerHTML = `
+                    <img src="${imageUrl}" alt="${enhancedPrompt}" onclick="openModal(this.src)" width="${width}" height="${height}">
+                    <div class="art-info">
+                        <h3>${basePrompt}</h3>
+                        <p>スタイル: ${style}</p>
+                        <p>比率: ${ratio}</p>
+                        <p>拡張プロンプト: ${enhancedPrompt}</p>
+                        <p>ネガティブプロンプト: ${negativePrompt}</p>
+                        <button class="similar-btn" onclick="generateSimilar('${imageUrl}')">類似画像を生成</button>
+                    </div>
+                    <div class="watermark">by 杉原クニ</div>
+                `;
+
+                artGallery.appendChild(artPiece);
+            }
+
+            isLoading = false;
+            loadingIndicator.style.display = 'none';
+        }
+
+        function generateSimilar(imageUrl) {
+            generateArt(true, imageUrl);
+        }
+
+        function openModal(src) {
+            modal.style.display = "block";
+            modalImg.src = src;
+        }
+
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        generateBtn.addEventListener('click', () => generateArt(false));
+
+        // 初期アート作品を生成
+        generateArt(false);
+
+        // 無限スクロール
+        window.addEventListener('scroll', () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500 && !isLoading) {
+                generateArt(true);
+            }
+        });
+    </script>
+</body></html>
